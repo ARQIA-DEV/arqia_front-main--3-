@@ -49,7 +49,7 @@ export default function UploadPage() {
     setIsUploading(true)
 
     try {
-      const response = await axios.post('https://arqia.onrender.com/api/analisar/', formData, {
+      const response = await axios.post('/api/analisar/', formData, {
         headers: {
           Authorization: `Bearer ${session.access}`,
           'Content-Type': 'multipart/form-data',

@@ -29,7 +29,7 @@ export default function ResultsPage() {
 
     const fetchData = async () => {
       try {
-        const res = await axios.get('https://arqia.onrender.com/api/documentos/', {
+        const res = await axios.get('/api/documentos/', {
           headers: {
             Authorization: `Bearer ${session?.access}`,
           },
