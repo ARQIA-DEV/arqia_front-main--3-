@@ -13,11 +13,13 @@ export default function Home() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const router = useRouter();
+  const apiBaseUrl = (process.env.NEXT_PUBLIC_API_BASE_URL || '').replace(/\/$/, '');
+  const apiUrl = (path) => `${apiBaseUrl}${path}`;
 
   const handleLogin = async () => {
     setError(null);
     try {
-      const res = await fetch('https://arqia.onrender.com/api/token/', {
+      const res = await fetch(apiUrl('/api/token/'), {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ username: email, password })
@@ -39,7 +41,7 @@ export default function Home() {
     const formData = new FormData();
     formData.append('documento', file);
     try {
-      const res = await fetch('https://arqia.onrender.com/api/analisar/', {
+      const res = await fetch(apiUrl('/api/analisar/'), {
         method: 'POST',
         headers: { Authorization: `Bearer ${token}` },
         body: formData

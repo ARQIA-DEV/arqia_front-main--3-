@@ -4,13 +4,15 @@ import { Button } from '@/components/ui/button'
 import { Card, CardContent } from '@/components/ui/card'
 
 export default function Home() {
+  const apiBaseUrl = (process.env.NEXT_PUBLIC_API_BASE_URL || '').replace(/\/$/, '')
+  const apiUrl = (path) => `${apiBaseUrl}${path}`
   const [token, setToken] = useState('')
   const [file, setFile] = useState<File | null>(null)
   const [analysis, setAnalysis] = useState('')
   const [loading, setLoading] = useState(false)
 
   const handleLogin = async () => {
-    const res = await fetch('https://arqia.onrender.com/api/token/', {
+    const res = await fetch(apiUrl('/api/token/'), {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ username: 'admin', password: 'admin' }) // substituir por campos do form futuramente
@@ -26,7 +28,7 @@ export default function Home() {
     const formData = new FormData()
     formData.append('documento', file)
 
-    const res = await fetch('https://arqia.onrender.com/api/analisar/', {
+    const res = await fetch(apiUrl('/api/analisar/'), {
       method: 'POST',
       headers: { Authorization: `Bearer ${token}` },
       body: formData,
