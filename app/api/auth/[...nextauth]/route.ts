@@ -2,6 +2,8 @@
 import NextAuth from 'next-auth'
 import CredentialsProvider from 'next-auth/providers/credentials'
 
+const API_BASE = (process.env.NEXT_PUBLIC_API_BASE_URL || '').replace(/\/+$/, '')
+
 const handler = NextAuth({
   providers: [
     CredentialsProvider({
@@ -11,7 +13,7 @@ const handler = NextAuth({
         password: { label: 'Senha', type: 'password' },
       },
       async authorize(credentials) {
-        const res = await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL}/api/token/`, {
+        const res = await fetch(`${API_BASE}/api/token/`, {
           method: 'POST',
           body: JSON.stringify({
             username: credentials?.username,

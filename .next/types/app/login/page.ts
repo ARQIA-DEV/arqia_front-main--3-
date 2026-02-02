@@ -1,4 +1,4 @@
-// File: C:\Users\Deryck\arqia_front\app\login\page.tsx
+// File: /home/administrador/arqia_front-main--3-/app/login/page.tsx
 import * as entry from '../../../../app/login/page.js'
 import type { ResolvingMetadata, ResolvingViewport } from 'next/dist/lib/metadata/types/metadata-interface.js'
 

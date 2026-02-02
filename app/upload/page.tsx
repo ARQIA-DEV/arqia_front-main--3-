@@ -42,6 +42,12 @@ export default function UploadPage() {
       return
     }
 
+    if (file.type !== 'application/pdf') {
+      setMessage('Por enquanto, só PDF.')
+      setMessageType('error')
+      return
+    }
+
     const formData = new FormData()
     formData.append('arquivo', file)
     formData.append('categoria', category)
@@ -52,7 +58,6 @@ export default function UploadPage() {
       const response = await axios.post('/api/analisar/', formData, {
         headers: {
           Authorization: `Bearer ${session.access}`,
-          'Content-Type': 'multipart/form-data',
         },
       })
 
@@ -65,9 +70,10 @@ export default function UploadPage() {
         setMessage('Erro interno ao obter ID do documento.')
         setMessageType('error')
       }
-    } catch (error) {
-      console.error(error)
-      setMessage('Erro ao enviar o arquivo. Verifique se está logado.')
+    } catch (err: any) {
+      console.error(err)
+      const msg = err?.response?.data?.erro || err?.response?.data?.detail || 'Erro ao enviar o arquivo.'
+      setMessage(msg)
       setMessageType('error')
     } finally {
       setIsUploading(false)
@@ -85,7 +91,7 @@ export default function UploadPage() {
           type="file"
           onChange={(e) => setFile(e.target.files?.[0] || null)}
           className="block w-full"
-          accept=".pdf,.doc,.docx"
+          accept=".pdf"
         />
 
         <select
