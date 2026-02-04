@@ -11,13 +11,8 @@ import Link from 'next/link'
 type Documento = DocumentoNormalizado
 
 type Filters = {
-  cnpj: string
-  fornecedor: string
   dataInicio: string
   dataFim: string
-  valorMin: string
-  valorMax: string
-  numeroNota: string
 }
 
 type SortKey =
@@ -29,13 +24,8 @@ type SortKey =
   | 'fornecedor_desc'
 
 const INITIAL_FILTERS: Filters = {
-  cnpj: '',
-  fornecedor: '',
   dataInicio: '',
   dataFim: '',
-  valorMin: '',
-  valorMax: '',
-  numeroNota: '',
 }
 
 const getDocumentoDate = (documento: Documento) => {
@@ -58,7 +48,7 @@ export default function ResultsPage() {
   const [debouncedFilters, setDebouncedFilters] = useState<Filters>(INITIAL_FILTERS)
   const [sortKey, setSortKey] = useState<SortKey>('data_desc')
   const [page, setPage] = useState(1)
-  const [pageSize, setPageSize] = useState(10)
+  const pageSize = 10
 
   useEffect(() => {
     const timeoutId = setTimeout(() => {
@@ -82,13 +72,8 @@ export default function ResultsPage() {
       setError('')
 
       const params = new URLSearchParams()
-      if (debouncedFilters.cnpj) params.set('cnpj', debouncedFilters.cnpj)
-      if (debouncedFilters.fornecedor) params.set('fornecedor', debouncedFilters.fornecedor)
       if (debouncedFilters.dataInicio) params.set('data_inicio', debouncedFilters.dataInicio)
       if (debouncedFilters.dataFim) params.set('data_fim', debouncedFilters.dataFim)
-      if (debouncedFilters.valorMin) params.set('valor_min', debouncedFilters.valorMin)
-      if (debouncedFilters.valorMax) params.set('valor_max', debouncedFilters.valorMax)
-      if (debouncedFilters.numeroNota) params.set('numero_nota', debouncedFilters.numeroNota)
 
       try {
         const url = params.toString() ? `/api/documentos/?${params.toString()}` : '/api/documentos/'
@@ -113,56 +98,8 @@ export default function ResultsPage() {
     }
   }, [debouncedFilters, router, session, status])
 
-  const activeFilterTags = useMemo(() => {
-    const tags: { key: keyof Filters; label: string; value: string }[] = []
-
-    if (debouncedFilters.cnpj) tags.push({ key: 'cnpj', label: 'CNPJ', value: debouncedFilters.cnpj })
-    if (debouncedFilters.fornecedor) {
-      tags.push({ key: 'fornecedor', label: 'Fornecedor', value: debouncedFilters.fornecedor })
-    }
-    if (debouncedFilters.dataInicio) {
-      tags.push({ key: 'dataInicio', label: 'Data (de)', value: debouncedFilters.dataInicio })
-    }
-    if (debouncedFilters.dataFim) {
-      tags.push({ key: 'dataFim', label: 'Data (até)', value: debouncedFilters.dataFim })
-    }
-    if (debouncedFilters.valorMin) {
-      tags.push({ key: 'valorMin', label: 'Valor (mín)', value: debouncedFilters.valorMin })
-    }
-    if (debouncedFilters.valorMax) {
-      tags.push({ key: 'valorMax', label: 'Valor (máx)', value: debouncedFilters.valorMax })
-    }
-    if (debouncedFilters.numeroNota) {
-      tags.push({ key: 'numeroNota', label: 'Nº da nota', value: debouncedFilters.numeroNota })
-    }
-
-    return tags
-  }, [debouncedFilters])
-
   const filteredDocs = useMemo(() => {
-    const normalize = (value?: string) => (value || '').toLowerCase()
-    const matchesText = (value: string | undefined, query: string) =>
-      normalize(value).includes(normalize(query))
-
     return documentos.filter((doc) => {
-      if (debouncedFilters.cnpj && !matchesText(doc.cnpj, debouncedFilters.cnpj)) return false
-      if (debouncedFilters.fornecedor && !matchesText(doc.fornecedor, debouncedFilters.fornecedor)) {
-        return false
-      }
-      if (debouncedFilters.numeroNota && !matchesText(doc.numeroNota, debouncedFilters.numeroNota)) {
-        return false
-      }
-
-      if (debouncedFilters.valorMin) {
-        const min = Number(debouncedFilters.valorMin)
-        if (!Number.isNaN(min) && (doc.valor ?? 0) < min) return false
-      }
-
-      if (debouncedFilters.valorMax) {
-        const max = Number(debouncedFilters.valorMax)
-        if (!Number.isNaN(max) && (doc.valor ?? 0) > max) return false
-      }
-
       if (debouncedFilters.dataInicio || debouncedFilters.dataFim) {
         const dateValue = getDocumentoDate(doc)
         const docDate = dateValue ? new Date(dateValue) : null
@@ -246,62 +183,25 @@ export default function ResultsPage() {
       </div>
 
       <div className="mb-6 border rounded p-4 bg-[#F7FAFA] dark:bg-[#0F1B33]">
-        <p className="font-semibold mb-3">Filtros</p>
+        <p className="font-semibold mb-3">Filtros (datas) e ordenação</p>
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-          <input
-            type="text"
-            placeholder="CNPJ"
-            value={filters.cnpj}
-            onChange={(e) => setFilters((prev) => ({ ...prev, cnpj: e.target.value }))}
-            className="w-full border rounded px-3 py-2 text-sm bg-white text-black dark:bg-[#0C1528] dark:text-white dark:border-[#1b2b4a]"
-          />
-          <input
-            type="text"
-            placeholder="Fornecedor"
-            value={filters.fornecedor}
-            onChange={(e) => setFilters((prev) => ({ ...prev, fornecedor: e.target.value }))}
-            className="w-full border rounded px-3 py-2 text-sm bg-white text-black dark:bg-[#0C1528] dark:text-white dark:border-[#1b2b4a]"
-          />
           <input
             type="date"
             value={filters.dataInicio}
             onChange={(e) => setFilters((prev) => ({ ...prev, dataInicio: e.target.value }))}
-            className="w-full border rounded px-3 py-2 text-sm bg-white text-black dark:bg-[#0C1528] dark:text-white dark:border-[#1b2b4a]"
+            className="w-full border rounded px-3 py-2 text-sm bg-white text-black dark:bg-[#081226] dark:text-slate-100 dark:border-slate-600 dark:[color-scheme:dark]"
           />
           <input
             type="date"
             value={filters.dataFim}
             onChange={(e) => setFilters((prev) => ({ ...prev, dataFim: e.target.value }))}
-            className="w-full border rounded px-3 py-2 text-sm bg-white text-black dark:bg-[#0C1528] dark:text-white dark:border-[#1b2b4a]"
-          />
-          <input
-            type="number"
-            placeholder="Valor mínimo"
-            value={filters.valorMin}
-            onChange={(e) => setFilters((prev) => ({ ...prev, valorMin: e.target.value }))}
-            className="w-full border rounded px-3 py-2 text-sm bg-white text-black dark:bg-[#0C1528] dark:text-white dark:border-[#1b2b4a]"
-            min="0"
-          />
-          <input
-            type="number"
-            placeholder="Valor máximo"
-            value={filters.valorMax}
-            onChange={(e) => setFilters((prev) => ({ ...prev, valorMax: e.target.value }))}
-            className="w-full border rounded px-3 py-2 text-sm bg-white text-black dark:bg-[#0C1528] dark:text-white dark:border-[#1b2b4a]"
-            min="0"
-          />
-          <input
-            type="text"
-            placeholder="Número da nota"
-            value={filters.numeroNota}
-            onChange={(e) => setFilters((prev) => ({ ...prev, numeroNota: e.target.value }))}
-            className="w-full border rounded px-3 py-2 text-sm bg-white text-black dark:bg-[#0C1528] dark:text-white dark:border-[#1b2b4a]"
+            className="w-full border rounded px-3 py-2 text-sm bg-white text-black dark:bg-[#081226] dark:text-slate-100 dark:border-slate-600 dark:[color-scheme:dark]"
           />
           <div className="flex gap-2">
             <select
               value={sortKey}
               onChange={(e) => setSortKey(e.target.value as SortKey)}
-              className="w-full border rounded px-3 py-2 text-sm bg-white text-black dark:bg-[#0C1528] dark:text-white dark:border-[#1b2b4a]"
+              className="w-full border rounded px-3 py-2 text-sm bg-white text-black dark:bg-[#081226] dark:text-slate-100 dark:border-slate-600"
             >
               <option value="data_desc">Ordenar por: mais recentes</option>
               <option value="data_asc">Ordenar por: mais antigos</option>
@@ -310,50 +210,26 @@ export default function ResultsPage() {
               <option value="fornecedor_asc">Ordenar por: fornecedor A-Z</option>
               <option value="fornecedor_desc">Ordenar por: fornecedor Z-A</option>
             </select>
-            <select
-              value={pageSize}
-              onChange={(e) => setPageSize(Number(e.target.value))}
-              className="w-28 border rounded px-3 py-2 text-sm bg-white text-black dark:bg-[#0C1528] dark:text-white dark:border-[#1b2b4a]"
-            >
-              <option value={10}>10</option>
-              <option value={20}>20</option>
-              <option value={50}>50</option>
-            </select>
-          </div>
-        </div>
-
-        {activeFilterTags.length > 0 && (
-          <div className="mt-3 flex flex-wrap gap-2">
-            {activeFilterTags.map((tag) => (
-              <button
-                key={tag.key}
-                type="button"
-                onClick={() => setFilters((prev) => ({ ...prev, [tag.key]: '' }))}
-                className="text-xs bg-[#015958] text-white px-2 py-1 rounded-full hover:bg-[#008F8C] transition"
-              >
-                {tag.label}: {tag.value} ✕
-              </button>
-            ))}
             <button
               type="button"
               onClick={() => setFilters(INITIAL_FILTERS)}
-              className="text-xs bg-gray-500 text-white px-2 py-1 rounded-full hover:bg-gray-600 transition"
+              className="px-3 py-2 rounded text-sm bg-gray-500 text-white hover:bg-gray-600 transition"
             >
-              Limpar filtros
+              Limpar
             </button>
           </div>
-        )}
+        </div>
       </div>
 
       {loading && <p className="text-azul-medio">Carregando...</p>}
       {error && <p className="text-red-500">{error}</p>}
 
       {!loading && !error && filteredDocs.length === 0 && (
-        <p className="text-azul-escuro">Sem resultados encontrados.</p>
+        <p className="text-azul-escuro dark:text-slate-200">Sem resultados encontrados.</p>
       )}
 
       {!loading && filteredDocs.length > 0 && (
-        <div className="flex items-center justify-between text-sm text-azul-escuro mb-3">
+        <div className="flex items-center justify-between text-sm text-azul-escuro dark:text-slate-200 mb-3">
           <span>
             {filteredDocs.length} resultado{filteredDocs.length !== 1 ? 's' : ''}
           </span>
@@ -369,19 +245,19 @@ export default function ResultsPage() {
           return (
             <li
               key={doc.id ?? `${doc.nomeArquivo}-${doc.enviadoEm ?? 'sem-data'}`}
-              className="border rounded p-4 shadow-sm hover:bg-[#F2F2F2] transition"
+              className="border rounded p-4 shadow-sm hover:bg-[#F2F2F2] dark:border-slate-700 dark:hover:bg-[#12213d] transition"
             >
               <Link href={detailHref}>
-                <p className="font-semibold hover:underline">{doc.nomeArquivo}</p>
-                <p className="text-sm text-azul-claro">{doc.categoria}</p>
-                {doc.fornecedor && <p className="text-xs text-azul-escuro">Fornecedor: {doc.fornecedor}</p>}
-                {doc.cnpj && <p className="text-xs text-azul-escuro">CNPJ: {doc.cnpj}</p>}
+                <p className="font-semibold hover:underline dark:text-slate-100">{doc.nomeArquivo}</p>
+                <p className="text-sm text-azul-claro dark:text-teal-300">{doc.categoria}</p>
+                {doc.fornecedor && <p className="text-xs text-azul-escuro dark:text-slate-300">Fornecedor: {doc.fornecedor}</p>}
+                {doc.cnpj && <p className="text-xs text-azul-escuro dark:text-slate-300">CNPJ: {doc.cnpj}</p>}
                 {typeof doc.valor === 'number' && (
-                  <p className="text-xs text-azul-escuro">
+                  <p className="text-xs text-azul-escuro dark:text-slate-300">
                     Valor: {doc.valor.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}
                   </p>
                 )}
-                <p className="text-xs text-azul-medio">{formatDate(getDocumentoDate(doc))}</p>
+                <p className="text-xs text-azul-medio dark:text-slate-400">{formatDate(getDocumentoDate(doc))}</p>
               </Link>
             </li>
           )

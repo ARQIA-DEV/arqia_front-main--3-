@@ -92,7 +92,7 @@ export default function DocumentoPage() {
   if (error || !documento) return <p className="p-4 text-red-500">{error || 'Documento não encontrado.'}</p>
 
   return (
-    <div className="max-w-3xl mx-auto mt-10 p-6 bg-white shadow-md rounded text-azul-escuro">
+    <div className="max-w-3xl mx-auto mt-10 p-6 bg-white dark:bg-[#0F1B33] shadow-md rounded text-azul-escuro dark:text-slate-100">
       <div className="flex justify-between items-center mb-6">
         <h1 className="text-2xl font-bold">{documento.nomeArquivo}</h1>
         <Link href="/results" className="text-sm bg-azul-claro text-white px-3 py-1 rounded hover:bg-azul-medio">
@@ -100,7 +100,7 @@ export default function DocumentoPage() {
         </Link>
       </div>
 
-      <p className="text-sm mb-4 text-azul-medio">
+      <p className="text-sm mb-4 text-azul-medio dark:text-slate-300">
         Categoria: <strong>{documento.categoria}</strong> <br />
         Enviado em: {formatDate(documento.enviadoEm)}
         <br />
@@ -121,7 +121,7 @@ export default function DocumentoPage() {
       {documento.statusCode === 'completed' && (
         <div>
           <h2 className="text-lg font-semibold mb-2">Resultado da Análise:</h2>
-          <pre className="bg-gray-100 p-3 rounded max-h-80 overflow-y-auto whitespace-pre-wrap">
+          <pre className="bg-gray-100 text-slate-900 dark:bg-[#081226] dark:text-slate-100 dark:border dark:border-slate-700 p-3 rounded max-h-80 overflow-y-auto whitespace-pre-wrap">
             {documento.analise || 'Nenhum resultado disponível.'}
           </pre>
         </div>
