@@ -22,7 +22,7 @@ export default function Navbar() {
           <Link href="/results" className="hover:underline text-black dark:text-white">
             Resultados
           </Link>
-          <button onClick={() => signOut()} className="hover:underline text-black dark:text-white">
+          <button onClick={() => signOut({ callbackUrl: '/login' })} className="hover:underline text-black dark:text-white">
             Sair
           </button>
           <button

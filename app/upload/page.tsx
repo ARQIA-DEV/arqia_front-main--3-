@@ -16,13 +16,13 @@ export default function UploadPage() {
   const [isUploading, setIsUploading] = useState(false)
   const [documentoId, setDocumentoId] = useState<string | null>(null)
 
-  if (status === 'loading') return null
-
   useEffect(() => {
     if (status === 'unauthenticated') {
-      router.push('/login')
+      router.replace('/login')
     }
   }, [status, router])
+
+  if (status !== 'authenticated') return null
 
   const handleSubmit = async (e: FormEvent) => {
     e.preventDefault()
