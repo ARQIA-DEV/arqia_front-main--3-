@@ -4,29 +4,11 @@ import { useEffect, useMemo, useState } from 'react'
 import { useSession } from 'next-auth/react'
 import { useRouter } from 'next/navigation'
 import axios from '@/lib/axios'
+import { normalizeDocumentos } from '@/lib/normalizeDocumento'
+import type { DocumentoNormalizado } from '@/lib/normalizeDocumento'
 import Link from 'next/link'
 
-type Categoria = {
-  id: number
-  nome: string
-}
-
-type DocumentoStatus = 'pending' | 'processing' | 'completed' | 'failed'
-
-type Documento = {
-  id: number
-  nome_arquivo: string
-  categoria: Categoria | null
-  resultado_analise?: string | null
-  status?: DocumentoStatus
-  error_message?: string | null
-  data_envio: string
-  cnpj?: string
-  fornecedor?: string
-  valor?: number
-  numero_nota?: string
-  data_emissao?: string
-}
+type Documento = DocumentoNormalizado
 
 type Filters = {
   cnpj: string
@@ -54,6 +36,16 @@ const INITIAL_FILTERS: Filters = {
   valorMin: '',
   valorMax: '',
   numeroNota: '',
+}
+
+const getDocumentoDate = (documento: Documento) => {
+  return documento.dataEmissao || documento.enviadoEm
+}
+
+const formatDate = (value: string | null) => {
+  if (!value) return 'Data indisponível'
+  const date = new Date(value)
+  return Number.isNaN(date.getTime()) ? 'Data indisponível' : date.toLocaleString('pt-BR')
 }
 
 export default function ResultsPage() {
@@ -107,7 +99,7 @@ export default function ResultsPage() {
         })
 
         const data = Array.isArray(res.data) ? res.data : res.data?.results || []
-        setDocumentos(data)
+        setDocumentos(normalizeDocumentos(data))
       } catch (err) {
         console.error(err)
         setError('Erro ao carregar documentos.')
@@ -157,7 +149,7 @@ export default function ResultsPage() {
       if (debouncedFilters.fornecedor && !matchesText(doc.fornecedor, debouncedFilters.fornecedor)) {
         return false
       }
-      if (debouncedFilters.numeroNota && !matchesText(doc.numero_nota, debouncedFilters.numeroNota)) {
+      if (debouncedFilters.numeroNota && !matchesText(doc.numeroNota, debouncedFilters.numeroNota)) {
         return false
       }
 
@@ -172,7 +164,7 @@ export default function ResultsPage() {
       }
 
       if (debouncedFilters.dataInicio || debouncedFilters.dataFim) {
-        const dateValue = doc.data_emissao || doc.data_envio
+        const dateValue = getDocumentoDate(doc)
         const docDate = dateValue ? new Date(dateValue) : null
         if (!docDate || Number.isNaN(docDate.getTime())) return false
 
@@ -196,7 +188,12 @@ export default function ResultsPage() {
 
   const sortedDocs = useMemo(() => {
     const docs = [...filteredDocs]
-    const getDate = (doc: Documento) => new Date(doc.data_emissao || doc.data_envio).getTime()
+    const getDate = (doc: Documento) => {
+      const value = getDocumentoDate(doc)
+      if (!value) return 0
+      const parsed = new Date(value).getTime()
+      return Number.isNaN(parsed) ? 0 : parsed
+    }
     const getValor = (doc: Documento) => doc.valor ?? 0
     const getFornecedor = (doc: Documento) => (doc.fornecedor || '').toLowerCase()
 
@@ -367,24 +364,28 @@ export default function ResultsPage() {
       )}
 
       <ul className="space-y-4">
-        {pagedDocs.map((doc) => (
-          <li key={doc.id} className="border rounded p-4 shadow-sm hover:bg-[#F2F2F2] transition">
-            <Link href={`/results/${doc.id}`}>
-              <p className="font-semibold hover:underline">{doc.nome_arquivo}</p>
-              <p className="text-sm text-azul-claro">{doc.categoria?.nome || 'Sem categoria'}</p>
-              {doc.fornecedor && <p className="text-xs text-azul-escuro">Fornecedor: {doc.fornecedor}</p>}
-              {doc.cnpj && <p className="text-xs text-azul-escuro">CNPJ: {doc.cnpj}</p>}
-              {typeof doc.valor === 'number' && (
-                <p className="text-xs text-azul-escuro">
-                  Valor: {doc.valor.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}
-                </p>
-              )}
-              <p className="text-xs text-azul-medio">
-                {new Date(doc.data_emissao || doc.data_envio).toLocaleString('pt-BR')}
-              </p>
-            </Link>
-          </li>
-        ))}
+        {pagedDocs.map((doc) => {
+          const detailHref = typeof doc.id === 'number' ? `/results/${doc.id}` : '/results'
+          return (
+            <li
+              key={doc.id ?? `${doc.nomeArquivo}-${doc.enviadoEm ?? 'sem-data'}`}
+              className="border rounded p-4 shadow-sm hover:bg-[#F2F2F2] transition"
+            >
+              <Link href={detailHref}>
+                <p className="font-semibold hover:underline">{doc.nomeArquivo}</p>
+                <p className="text-sm text-azul-claro">{doc.categoria}</p>
+                {doc.fornecedor && <p className="text-xs text-azul-escuro">Fornecedor: {doc.fornecedor}</p>}
+                {doc.cnpj && <p className="text-xs text-azul-escuro">CNPJ: {doc.cnpj}</p>}
+                {typeof doc.valor === 'number' && (
+                  <p className="text-xs text-azul-escuro">
+                    Valor: {doc.valor.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}
+                  </p>
+                )}
+                <p className="text-xs text-azul-medio">{formatDate(getDocumentoDate(doc))}</p>
+              </Link>
+            </li>
+          )
+        })}
       </ul>
 
       {!loading && filteredDocs.length > 0 && (
