@@ -91,7 +91,7 @@ export default function UploadPage() {
           type="file"
           onChange={(e) => setFile(e.target.files?.[0] || null)}
           className="block w-full"
-          accept=".pdf"
+          accept=".pdf,application/pdf"
         />
 
         <select

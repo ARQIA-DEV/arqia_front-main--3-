@@ -1,4 +1,4 @@
-// File: /home/administrador/arqia_front-main--3-/app/api/auth/[...nextauth]/route.ts
+// File: /home/administrador/projetos_Ps/arqia_front-main--3-/app/api/auth/[...nextauth]/route.ts
 import * as entry from '../../../../../../app/api/auth/[...nextauth]/route.js'
 import type { NextRequest } from 'next/server.js'
 
